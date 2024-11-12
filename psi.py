@@ -1,7 +1,17 @@
 # PSI
 
+# TO DO:
+# Intersection should be computed on the clients end
+# Split up parts by Client class and Server Class
+# add benchmarking function regarding speed that creates tables
+# function to take a hash and define it under a group G python
+# start working on the readme project report
+
 import random
 from hashlib import blake2b
+
+
+#### Preliminaries
 
 # Simple paramaters used for demo purposes
 P = 1019  # Large prime number for modulo operations
@@ -15,6 +25,9 @@ def hash_to_int(kwd):
 def generate_secret():
     # Generate a random secret exponent
     return random.randint(1, P - 2)
+
+
+
 
 def perform_psi(client_elements, server_elements_per_doc):
     # Perform PSI between the client and server
