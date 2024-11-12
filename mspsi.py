@@ -1,5 +1,12 @@
 # MS-PSI
 
+# TO DO:
+# Intersection should be computed on the clients end
+# Split up parts by Client class and Server Class
+# add benchmarking function regarding speed that creates tables
+# start working on the readme project report
+# add a feature that returns the keyword id's of the users set. so for the search "apple apple date banana" for doc 1, it woudl return "The keywords 1,2 and 4 were found"
+
 import random
 from hashlib import blake2b
 from collections import Counter
