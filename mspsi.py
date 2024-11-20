@@ -1,8 +1,5 @@
 # MS-PSI
 
-# TO DO:
-# start working on the readme project report
-
 import random
 from hashlib import blake2b
 from collections import Counter

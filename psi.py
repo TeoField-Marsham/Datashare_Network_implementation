@@ -1,9 +1,5 @@
 # PSI
 
-# TO DO:
-# function to take a hash and define it under a group G python
-# start working on the readme project report
-
 import random
 from hashlib import blake2b
 
