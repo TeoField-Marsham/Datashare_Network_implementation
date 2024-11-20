@@ -2,7 +2,6 @@
 
 # TO DO:
 # start working on the readme project report
-# add a feature that returns the keyword id's of the users set. so for the search "apple apple date banana" for doc 1, it woudl return "The keywords 1,2 and 4 were found"
 
 import random
 from hashlib import blake2b
@@ -14,7 +13,7 @@ G = 2     # Primitive root modulo
 
 def hash_to_int(kwd):
     # Hash a keyword to an integer
-    hash_value = blake2b(kwd.encode(), digest_size=16).digest()
+    hash_value = blake2b(kwd.encode(), digest_size=64).digest()
     return int.from_bytes(hash_value, 'big')
 
 def generate_secret():
@@ -42,20 +41,30 @@ def client_setup():
     user_input = input("Please enter keywords to search separated by spaces: ").strip()
     client_keywords = [word for word in user_input.split() if word]
 
-    # Hash/encrypt client's keywords to integers
-    client_elements = [hash_to_int(kwd) for kwd in client_keywords]
+    # Assign IDs to the keywords
+    client_keyword_ids = list(range(1, len(client_keywords)+1))
 
-    return client_elements
+    # Hash/encrypt client's keywords to integers and map them to IDs
+    client_elements = []
+    client_element_id_map = {}
+    for idx, kwd in zip(client_keyword_ids, client_keywords):
+        elem = hash_to_int(kwd)
+        client_elements.append(elem)
+        if elem not in client_element_id_map:
+            client_element_id_map[elem] = []
+        client_element_id_map[elem].append(idx)
 
-def perform_ms_psi(client_elements, server_elements_per_doc):
+    return client_elements, client_element_id_map
+
+def perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_map):
 
     # Client generates a secret and exponentiates their hashed elements
     client_secret = generate_secret()
-    client_element_counts = Counter(client_elements) # Client initiates counter to ensure that duplicates can be accounted for 
-    client_transformed_counts = {}
+    client_element_counts = Counter(client_elements)
+    client_transformed_elements = {}
     for elem, count in client_element_counts.items():
         transformed_elem = pow(G, elem * client_secret, P)
-        client_transformed_counts[transformed_elem] = count
+        client_transformed_elements[transformed_elem] = {'count': count, 'ids': client_element_id_map[elem]}
 
     """Client sends client_transformed_elements to server"""
 
@@ -72,9 +81,9 @@ def perform_ms_psi(client_elements, server_elements_per_doc):
 
         # Server exponentiates client's elements with server's secret
         client_elements_server = {}
-        for elem, count in client_transformed_counts.items():
-            transformed_elem = pow(elem, server_secret, P)
-            client_elements_server[transformed_elem] = count
+        for transformed_elem, value in client_transformed_elements.items():
+            transformed_elem_server = pow(transformed_elem, server_secret, P)
+            client_elements_server[transformed_elem_server] = value  # value includes 'count' and 'ids'
 
         """Server sends server_transformed_elements and client_elements_server to client"""
 
@@ -85,13 +94,13 @@ def perform_ms_psi(client_elements, server_elements_per_doc):
             server_elements_client[transformed_elem] = count
 
         # Client finds multiset intersection (considering multiplicities)
-        intersection_counts = {}
+        intersection_ids = set()
         for elem in client_elements_server:
             if elem in server_elements_client:
-                min_count = min(client_elements_server[elem], server_elements_client[elem])
-                intersection_counts[elem] = min_count
-        total_count = sum(intersection_counts.values())
-        counts_per_doc.append((doc_id, total_count))
+                # Get the IDs from client_elements_server[elem]['ids']
+                ids = client_elements_server[elem]['ids']
+                intersection_ids.update(ids)
+        counts_per_doc.append((doc_id, intersection_ids))
 
     return counts_per_doc
 
@@ -99,10 +108,15 @@ def perform_ms_psi(client_elements, server_elements_per_doc):
 if __name__ == "__main__":
 
     server_elements_per_doc = server_setup()
-    client_elements = client_setup()
+    client_elements, client_element_id_map = client_setup()
 
     # Perform MS-PSI
-    counts_per_doc = perform_ms_psi(client_elements, server_elements_per_doc)
+    counts_per_doc = perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_map)
 
-    for doc_id, count in counts_per_doc:
-        print(f"Document '{doc_id}' has {count} matching keyword(s).")
+    for doc_id, ids in counts_per_doc:
+        ids = sorted(ids)
+        if ids:
+            ids_str = ', '.join(map(str, ids))
+            print(f"Document '{doc_id}' has matching keyword IDs: {ids_str}.")
+        else:
+            print(f"Document '{doc_id}' has no matching keywords.")

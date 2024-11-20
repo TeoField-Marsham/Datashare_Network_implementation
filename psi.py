@@ -13,7 +13,7 @@ G = 2     # Primitive root modulo
 
 def hash_to_int(kwd):
     # Hash a keyword to an integer
-    hash_value = blake2b(kwd.encode(), digest_size=16).digest()
+    hash_value = blake2b(kwd.encode(), digest_size=64).digest()
     return int.from_bytes(hash_value, 'big')
 
 def generate_secret():
