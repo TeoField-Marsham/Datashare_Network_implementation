@@ -36,46 +36,51 @@ def client_setup():
 
     return client_elements
 
-def perform_psi(client_elements, server_elements):
-
+def client_transform(client_elements):
     # Client generates a secret and exponentiates their hashed elements
     client_secret = generate_secret()
     client_transformed_elements = [pow(G, elem * client_secret, P) for elem in client_elements]
+    return client_secret, client_transformed_elements
 
-    """Client sends client_transformed_elements to server"""
-
-    counts = []
+def server_process(server_elements, client_transformed_elements):
+    server_data = {}
     for doc_id, server_element in server_elements.items():
-
         # Server generates a secret and exponentiates their hashed elements
         server_secret = generate_secret()
         server_transformed_elements = [pow(G, elem * server_secret, P) for elem in server_element]
-
         # Server exponentiates client's elements with server's secret
         client_elements_server = [pow(elem, server_secret, P) for elem in client_transformed_elements]
+        server_data[doc_id] = (server_transformed_elements, client_elements_server)
+    return server_data
 
-        """Server sends server_transformed_elements and client_elements_server to client"""
-
+def client_compute_intersection(client_secret, server_data):
+    counts = []
+    for doc_id, (server_transformed_elements, client_elements_server) in server_data.items():
         # Client exponentiates server's transformed elements with client_secret
         server_elements_client = [pow(elem, client_secret, P) for elem in server_transformed_elements]
-
         # Client computes the intersection
         set_client = set(client_elements_server)
         set_server = set(server_elements_client)
         intersection = set_client.intersection(set_server)
         count = len(intersection)
         counts.append((doc_id, count))
-
     return counts
 
-
 if __name__ == "__main__":
-
     server_elements = server_setup()
     client_elements = client_setup()
 
-    # Perform PSI
-    counts = perform_psi(client_elements, server_elements)
+    # Client's initial transformation
+    client_secret, client_transformed_elements = client_transform(client_elements)
 
+    """Client sends client_transformed_elements to server"""
+
+    # Server's processing
+    server_data = server_process(server_elements, client_transformed_elements)
+
+    """Server sends server_transformed_elements and client_elements_server to client"""
+
+    # Client computes intersections
+    counts = client_compute_intersection(client_secret, server_data)
     for doc_id, count in counts:
         print(f"Document '{doc_id}' has {count} matching keyword(s).")

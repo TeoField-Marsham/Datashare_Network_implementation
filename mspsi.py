@@ -53,8 +53,7 @@ def client_setup():
 
     return client_elements, client_element_id_map
 
-def perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_map):
-
+def client_transform(client_elements, client_element_id_map):
     # Client generates a secret and exponentiates their hashed elements
     client_secret = generate_secret()
     client_element_counts = Counter(client_elements)
@@ -62,12 +61,11 @@ def perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_m
     for elem, count in client_element_counts.items():
         transformed_elem = pow(G, elem * client_secret, P)
         client_transformed_elements[transformed_elem] = {'count': count, 'ids': client_element_id_map[elem]}
+    return client_secret, client_transformed_elements
 
-    """Client sends client_transformed_elements to server"""
-
-    counts_per_doc = []
+def server_process(server_elements_per_doc, client_transformed_elements):
+    server_data = {}
     for doc_id, server_elements in server_elements_per_doc.items():
-
         # Server generates a secret and exponentiates their hashed elements
         server_secret = generate_secret()
         server_element_counts = Counter(server_elements)
@@ -82,8 +80,12 @@ def perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_m
             transformed_elem_server = pow(transformed_elem, server_secret, P)
             client_elements_server[transformed_elem_server] = value  # value includes 'count' and 'ids'
 
-        """Server sends server_transformed_elements and client_elements_server to client"""
+        server_data[doc_id] = (server_transformed_counts, client_elements_server)
+    return server_data
 
+def client_compute_intersection(client_secret, server_data):
+    counts_per_doc = []
+    for doc_id, (server_transformed_counts, client_elements_server) in server_data.items():
         # Client exponentiates server's transformed elements with their secret
         server_elements_client = {}
         for elem, count in server_transformed_counts.items():
@@ -98,18 +100,24 @@ def perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_m
                 ids = client_elements_server[elem]['ids']
                 intersection_ids.update(ids)
         counts_per_doc.append((doc_id, intersection_ids))
-
     return counts_per_doc
 
-
 if __name__ == "__main__":
-
     server_elements_per_doc = server_setup()
     client_elements, client_element_id_map = client_setup()
 
-    # Perform MS-PSI
-    counts_per_doc = perform_ms_psi(client_elements, server_elements_per_doc, client_element_id_map)
+    # Client's initial transformation
+    client_secret, client_transformed_elements = client_transform(client_elements, client_element_id_map)
 
+    """Client sends client_transformed_elements to server"""
+
+    # Server's processing
+    server_data = server_process(server_elements_per_doc, client_transformed_elements)
+
+    """Server sends server_transformed_elements and client_elements_server to client"""
+
+    # Client computes intersections
+    counts_per_doc = client_compute_intersection(client_secret, server_data)
     for doc_id, ids in counts_per_doc:
         ids = sorted(ids)
         if ids:
