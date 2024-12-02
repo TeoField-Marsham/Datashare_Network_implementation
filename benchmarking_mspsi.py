@@ -37,15 +37,21 @@ client_secret, client_transformed_elements = mspsi.client_transform(client_eleme
 end_time = time.time()
 client_transform_time = end_time - start_time
 
+# Measure the time taken by server_transform()
+start_time = time.time()
+server_secret, tag_collections_per_doc = mspsi.server_transform(server_elements_per_doc)
+end_time = time.time()
+server_transform_time = end_time - start_time
+
 """Client sends client_transformed_elements to server"""
 
 # Measure the time taken by server_process()
 start_time = time.time()
-server_data = mspsi.server_process(server_elements_per_doc, client_transformed_elements)
+server_data = mspsi.server_process(server_secret, tag_collections_per_doc, client_transformed_elements)
 end_time = time.time()
 server_process_time = end_time - start_time
 
-"""Server sends server_transformed_elements and client_elements_server to client"""
+"""Server sends tag_collection and client_elements_server to client"""
 
 # Measure the time taken by client_compute_intersection()
 start_time = time.time()
@@ -68,6 +74,7 @@ for doc_id, ids in counts_per_doc:
 
 print("\n")
 print(f"Time taken by client_transform(): {client_transform_time * 1000:.5f} milliseconds")
+print(f"Time taken by server_transform(): {server_transform_time * 1000:.5f} milliseconds")
 print(f"Time taken by server_process(): {server_process_time * 1000:.5f} milliseconds")
 print(f"Time taken by client_compute_intersection(): {client_compute_intersection_time * 1000:.5f} milliseconds")
 print(f"Total time taken: {total_time * 1000:.5f} milliseconds")
