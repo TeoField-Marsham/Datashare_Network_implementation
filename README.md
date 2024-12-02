@@ -8,4 +8,5 @@ By: Teo Field-Marsham
 - start working on the readme project report
 
 Temporary notes:
-Both sets should now be G^(H(kwd) * client_secret * server_secret) before computing the intersection
+N is specefied in the protocol because it may be useful for performance optimizations or bounding loops in a theoretical implementation.
+Some implementations might also rely on N to preallocate memory or track progress.

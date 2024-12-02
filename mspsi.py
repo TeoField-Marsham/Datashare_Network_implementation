@@ -85,36 +85,39 @@ def client_transform(client_elements, client_element_id_map):
     return client_secret, client_transformed_elements
 
 def server_process(server_elements_per_doc, client_transformed_elements):
+    # Server generates it's secret
+    server_secret = generate_secret()
     server_data = {}
     for doc_id, server_elements in server_elements_per_doc.items():
-        # Server generates a secret and exponentiates their hashed elements and hashes them again
-        server_secret = generate_secret()
-        server_transformed_counts = set()
+        # Server creates its tags and tag collection, i.e. server exponentiates their hashed elements and hashes them again
+        tag_collection = set()
         for elem in server_elements:
-            transformed_elem = pow(G, elem * server_secret, P)
-            elem_hash = blake2b((str(doc_id) + '||' + str(transformed_elem)).encode(), digest_size=64).hexdigest()
-            server_transformed_counts.add(elem_hash)
+            tags = pow(G, elem * server_secret, P) # Here we create the tags t that are in t^(i), for all i
+            elem_hash = blake2b((str(doc_id) + '||' + str(tags)).encode(), digest_size=64).hexdigest()
+            tag_collection.add(elem_hash) # Tag collection TC (N ist stored implicitly due to server_data being a dictionary)
 
+        # THIS IS STEP 4 (put me in a new func)
         # Server exponentiates client's elements with server's secret
         client_elements_server = {}
         for transformed_elem, value in client_transformed_elements.items():
             transformed_elem_server = pow(transformed_elem, server_secret, P)
             client_elements_server[transformed_elem_server] = value  # value includes 'count' and 'ids'
 
-        server_data[doc_id] = (server_transformed_counts, client_elements_server)
+        server_data[doc_id] = (tag_collection, client_elements_server)
     return server_data
 
 def client_compute_intersection(client_secret, server_data):
     counts_per_doc = []
-    for doc_id, (server_transformed_counts, client_elements_server) in server_data.items():
+    for doc_id, (tag_collection, client_elements_server) in server_data.items():
         # Client exponentiates server's transformed elements (their own elements from the beginning) with their inverse secret and hashes them
         client_secret_inverse = pow(client_secret, -1, q)
         server_elements_client = set()
         for elem, count in client_elements_server.items():
             transformed_elem = pow(elem, client_secret_inverse, P)
             elem_hash = blake2b((str(doc_id) + '||' + str(transformed_elem)).encode(), digest_size=64).hexdigest()
+
             # Client finds multiset intersection (considering multiplicities)
-            if elem_hash in server_transformed_counts:
+            if elem_hash in tag_collection:
                 ids = count['ids']
                 server_elements_client.update(ids)
         counts_per_doc.append((doc_id, server_elements_client))
@@ -132,7 +135,7 @@ if __name__ == "__main__":
     # Server's processing
     server_data = server_process(server_elements_per_doc, client_transformed_elements)
 
-    """Server sends server_transformed_elements and client_elements_server to client"""
+    """Server sends tag_collection and client_elements_server to client"""
 
     # Client computes intersections
     counts_per_doc = client_compute_intersection(client_secret, server_data)

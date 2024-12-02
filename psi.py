@@ -4,6 +4,7 @@ import random
 from hashlib import blake2b
 
 # Large safe prime P (2048-bit prime from RFC 7919)
+# Hex representation of the prime is used because Python struggles with large floating point number operations
 P_hex = '''
 FFFFFFFF FFFFFFFF ADF85458 A2BB4A9A AFDC5620 273D3CF1
 D8B9C583 CE2D3695 A9E13641 146433FB CC939DCE 249B3EF9
@@ -38,7 +39,7 @@ def generate_secret():
 
 def server_setup():
     # Server's keyword set
-    server_keywords = {'doc1': ['apple', 'banana', 'cherry', 'apple'],}
+    server_keywords = {'doc': ['apple', 'banana', 'cherry', 'apple'],}
 
     # Hash/encrypt server's keywords
     server_elements = {doc_id: [hash_to_int(kwd) for kwd in keywords]
@@ -67,19 +68,20 @@ def server_process(server_elements, client_transformed_elements):
     for doc_id, server_element in server_elements.items():
         # Server generates a secret and exponentiates their hashed elements and then hashes them again
         server_secret = generate_secret()
-        server_transformed_elements = []
+        tag_collection = []
         for elem in server_element:
             transformed_elem = pow(G, elem * server_secret, P)
             elem_hash = blake2b((str(doc_id) + '||' + str(transformed_elem)).encode(), digest_size=64).hexdigest()
-            server_transformed_elements.append(elem_hash)
+            tag_collection.append(elem_hash) 
+
         # Server exponentiates client's elements with server's secret
         client_elements_server = [pow(elem, server_secret, P) for elem in client_transformed_elements]
-        server_data[doc_id] = (server_transformed_elements, client_elements_server)
+        server_data[doc_id] = (tag_collection, client_elements_server)
     return server_data
 
 def client_compute_intersection(client_secret, server_data):
     counts = []
-    for doc_id, (server_transformed_elements, client_elements_server) in server_data.items():
+    for doc_id, (tag_collection, client_elements_server) in server_data.items():
         # Client exponentiates server's transformed elements (their own elements from the beginning) with their inverse secret and hashes them
         client_secret_inverse = pow(client_secret, -1, q)
         server_elements_client = []
@@ -87,8 +89,9 @@ def client_compute_intersection(client_secret, server_data):
             transformed_elem = pow(elem, client_secret_inverse, P)
             elem_hash = blake2b((str(doc_id) + '||' + str(transformed_elem)).encode(), digest_size=64).hexdigest()
             server_elements_client.append(elem_hash)
+
         # Client computes the intersection
-        set_client = set(server_transformed_elements)
+        set_client = set(tag_collection)
         set_server = set(server_elements_client)
         intersection = set_client.intersection(set_server)
         count = len(intersection)
@@ -107,7 +110,7 @@ if __name__ == "__main__":
     # Server's processing
     server_data = server_process(server_elements, client_transformed_elements)
 
-    """Server sends server_transformed_elements and client_elements_server to client"""
+    """Server sends tag_collection and client_elements_server to client"""
 
     # Client computes intersections
     counts = client_compute_intersection(client_secret, server_data)
