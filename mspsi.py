@@ -84,25 +84,28 @@ def client_transform(client_elements, client_element_id_map):
         client_transformed_elements[transformed_elem] = {'count': count, 'ids': client_element_id_map[elem]}
     return client_secret, client_transformed_elements
 
-def server_process(server_elements_per_doc, client_transformed_elements):
-    # Server generates it's secret
+def server_transform(server_elements_per_doc):
+    # Server generates its secret
     server_secret = generate_secret()
-    server_data = {}
+    tag_collections_per_doc = {}
     for doc_id, server_elements in server_elements_per_doc.items():
         # Server creates its tags and tag collection, i.e. server exponentiates their hashed elements and hashes them again
         tag_collection = set()
         for elem in server_elements:
-            tags = pow(G, elem * server_secret, P) # Here we create the tags t that are in t^(i), for all i
+            tags = pow(G, elem * server_secret, P)  # Here we create the tags t that are in t^(i), for all i
             elem_hash = blake2b((str(doc_id) + '||' + str(tags)).encode(), digest_size=64).hexdigest()
-            tag_collection.add(elem_hash) # Tag collection TC (N ist stored implicitly due to server_data being a dictionary)
+            tag_collection.add(elem_hash) # Tag collection TC (N is stored implicitly due to tag_collections_per_doc being a dictionary)
+        tag_collections_per_doc[doc_id] = tag_collection
+    return server_secret, tag_collections_per_doc
 
-        # THIS IS STEP 4 (put me in a new func)
+def server_process(server_secret, tag_collections_per_doc, client_transformed_elements):
+    server_data = {}
+    for doc_id, tag_collection in tag_collections_per_doc.items():
         # Server exponentiates client's elements with server's secret
         client_elements_server = {}
         for transformed_elem, value in client_transformed_elements.items():
             transformed_elem_server = pow(transformed_elem, server_secret, P)
             client_elements_server[transformed_elem_server] = value  # value includes 'count' and 'ids'
-
         server_data[doc_id] = (tag_collection, client_elements_server)
     return server_data
 
@@ -129,11 +132,13 @@ if __name__ == "__main__":
 
     # Client's initial transformation
     client_secret, client_transformed_elements = client_transform(client_elements, client_element_id_map)
+    # Server's initial transformation
+    server_secret, tag_collections_per_doc = server_transform(server_elements_per_doc)
 
     """Client sends client_transformed_elements to server"""
 
     # Server's processing
-    server_data = server_process(server_elements_per_doc, client_transformed_elements)
+    server_data = server_process(server_secret, tag_collections_per_doc, client_transformed_elements)
 
     """Server sends tag_collection and client_elements_server to client"""
 
