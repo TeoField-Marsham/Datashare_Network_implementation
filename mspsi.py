@@ -4,7 +4,8 @@ import random
 from hashlib import blake2b
 from collections import Counter
 
-# Large safe prime P (3072-bit prime from RFC 7919)
+# Large safe prime P (2048-bit prime from RFC 7919)
+# Hex representation of the prime is used because Python struggles with large floating point number operations
 P_hex = '''
 FFFFFFFF FFFFFFFF ADF85458 A2BB4A9A AFDC5620 273D3CF1
 D8B9C583 CE2D3695 A9E13641 146433FB CC939DCE 249B3EF9
@@ -16,12 +17,7 @@ B96ADAB7 60D7F468 1D4F42A3 DE394DF4 AE56EDE7 6372BB19
 0B07A7C8 EE0A6D70 9E02FCE1 CDF7E2EC C03404CD 28342F61
 9172FE9C E98583FF 8E4F1232 EEF28183 C3FE3B1B 4C6FAD73
 3BB5FCBC 2EC22005 C58EF183 7D1683B2 C6F34A26 C1B2EFFA
-886B4238 611FCFDC DE355B3B 6519035B BC34F4DE F99C0238
-61B46FC9 D6E6C907 7AD91D26 91F7F7EE 598CB0FA C186D91C
-AEFE1309 85139270 B4130C93 BC437944 F4FD4452 E2D74DD3
-64F2E21E 71F54BFF 5CAE82AB 9C9DF69E E86D2BC5 22363A0D
-ABC52197 9B0DEADA 1DBF9A42 D5C4484E 0ABCD06B FA53DDEF
-3C1B20EE 3FD59D7C 25E41D2B 66C62E37 FFFFFFFF FFFFFFFF
+886B4238 61285C97 FFFFFFFF FFFFFFFF
 '''
 
 # Remove spaces and newlines from the hex string and convert it to an integer
@@ -91,13 +87,13 @@ def client_transform(client_elements, client_element_id_map):
 def server_process(server_elements_per_doc, client_transformed_elements):
     server_data = {}
     for doc_id, server_elements in server_elements_per_doc.items():
-        # Server generates a secret and exponentiates their hashed elements
+        # Server generates a secret and exponentiates their hashed elements and hashes them again
         server_secret = generate_secret()
-        server_element_counts = Counter(server_elements)
-        server_transformed_counts = {}
-        for elem, count in server_element_counts.items():
+        server_transformed_counts = set()
+        for elem in server_elements:
             transformed_elem = pow(G, elem * server_secret, P)
-            server_transformed_counts[transformed_elem] = count
+            elem_hash = blake2b((str(doc_id) + '||' + str(transformed_elem)).encode(), digest_size=64).hexdigest()
+            server_transformed_counts.add(elem_hash)
 
         # Server exponentiates client's elements with server's secret
         client_elements_server = {}
@@ -111,20 +107,17 @@ def server_process(server_elements_per_doc, client_transformed_elements):
 def client_compute_intersection(client_secret, server_data):
     counts_per_doc = []
     for doc_id, (server_transformed_counts, client_elements_server) in server_data.items():
-        # Client exponentiates server's transformed elements with their secret
-        server_elements_client = {}
-        for elem, count in server_transformed_counts.items():
-            transformed_elem = pow(elem, client_secret, P)
-            server_elements_client[transformed_elem] = count
-
-        # Client finds multiset intersection (considering multiplicities)
-        intersection_ids = set()
-        for elem in client_elements_server:
-            if elem in server_elements_client:
-                # Get the IDs from client_elements_server[elem]['ids']
-                ids = client_elements_server[elem]['ids']
-                intersection_ids.update(ids)
-        counts_per_doc.append((doc_id, intersection_ids))
+        # Client exponentiates server's transformed elements (their own elements from the beginning) with their inverse secret and hashes them
+        client_secret_inverse = pow(client_secret, -1, q)
+        server_elements_client = set()
+        for elem, count in client_elements_server.items():
+            transformed_elem = pow(elem, client_secret_inverse, P)
+            elem_hash = blake2b((str(doc_id) + '||' + str(transformed_elem)).encode(), digest_size=64).hexdigest()
+            # Client finds multiset intersection (considering multiplicities)
+            if elem_hash in server_transformed_counts:
+                ids = count['ids']
+                server_elements_client.update(ids)
+        counts_per_doc.append((doc_id, server_elements_client))
     return counts_per_doc
 
 if __name__ == "__main__":
