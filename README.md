@@ -3,7 +3,6 @@
 By: Teo Field-Marsham
 
 ### TO DO:
-- function to take a hash and define it under a group G python
 - get benchmarking tables for presentation  
 - start working on the readme project report
 

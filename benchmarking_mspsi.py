@@ -2,8 +2,64 @@
 
 import time
 import mspsi
+import random
+import string
 
-def client_setup_override():
+def generate_large_keyword_pool(num_keywords):
+    # Creates a pool of random 5-letter keywords
+    keyword_pool = []
+    for _ in range(num_keywords):
+        kwd = ''.join(random.choices(string.ascii_lowercase, k=5))
+        keyword_pool.append(kwd)
+    return keyword_pool
+
+def server_setup_LARGE_DATASET():
+    random.seed(42) # Ensures that the pool and search keywords are always the same
+    keyword_pool = generate_large_keyword_pool(100)
+
+    num_docs = 30
+    keywords_per_doc = 10
+
+    server_documents = {}
+    for doc_id_num in range(1, num_docs+1):
+        doc_id = f"doc{doc_id_num}"
+        # Choose random keywords from the pool
+        doc_keywords = random.choices(keyword_pool, k=keywords_per_doc)
+        server_documents[doc_id] = doc_keywords
+
+    # Hash/encrypt server's keywords per document
+    server_elements_per_doc = {
+        doc_id: [mspsi.hash_to_int(kwd) for kwd in keywords]
+        for doc_id, keywords in server_documents.items()
+    }
+    return server_elements_per_doc
+
+def client_setup_LARGE_DATASET():
+    random.seed(42) # Ensures that the pool and search keywords are always the same
+    keyword_pool = generate_large_keyword_pool(100)
+
+    # Pick 10 keywords to search for
+    client_keywords = random.sample(keyword_pool, 10)
+
+    # Assign IDs to the keywords
+    client_keyword_ids = list(range(1, len(client_keywords)+1))
+
+    # Hash/encrypt client's keywords
+    client_elements = []
+    client_element_id_map = {}
+    for idx, kwd in zip(client_keyword_ids, client_keywords):
+        elem = mspsi.hash_to_int(kwd)
+        client_elements.append(elem)
+        if elem not in client_element_id_map:
+            client_element_id_map[elem] = []
+        client_element_id_map[elem].append(idx)
+
+    return client_elements, client_element_id_map
+
+def server_setup_SMALL_DATASET():
+    return mspsi.server_setup()
+
+def client_setup_SMALL_DATASET():
     # Enter test keywords
     client_keywords = ['apple', 'banana']
 
@@ -22,14 +78,13 @@ def client_setup_override():
 
     return client_elements, client_element_id_map
 
-# Override the client_setup function in mspsi.py
-mspsi.client_setup = client_setup_override
 
 # Begin total timing
 total_start_time = time.time()
 
-server_elements_per_doc = mspsi.server_setup()
-client_elements, client_element_id_map = mspsi.client_setup()
+# Here enter SMALL or LARGE to test either scenario
+server_elements_per_doc = server_setup_LARGE_DATASET()
+client_elements, client_element_id_map = client_setup_LARGE_DATASET()
 
 # Measure the time taken by client_transform()
 start_time = time.time()

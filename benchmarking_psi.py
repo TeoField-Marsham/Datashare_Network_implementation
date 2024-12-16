@@ -2,22 +2,58 @@
 
 import time
 import psi
+import random
+import string
 
-def client_setup_override():
+def generate_large_keyword_pool(num_keywords):
+    # Creates a pool of random 5-letter keywords
+    keyword_pool = []
+    for _ in range(num_keywords):
+        kwd = ''.join(random.choices(string.ascii_lowercase, k=5))
+        keyword_pool.append(kwd)
+    return keyword_pool
+
+def server_setup_LARGE_DATASET():
+    random.seed(42) # Ensures that the pool and search keywords are always the same
+    keyword_pool = generate_large_keyword_pool(100)
+
+    keywords_num = 300
+
+    server_keywords = {'doc': random.choices(keyword_pool, k=keywords_num)}
+
+    # Hash/encrypt server's keywords
+    server_elements = {doc_id: [psi.hash_to_int(kwd) for kwd in keywords]
+                        for doc_id, keywords in server_keywords.items()}
+
+    return server_elements
+
+def client_setup_LARGE_DATASET():
+    random.seed(42) # Ensures that the pool and search keywords are always the same
+    keyword_pool = generate_large_keyword_pool(100)
+
+    # Pick 10 keywords to search for
+    client_keywords = random.sample(keyword_pool, 10)
+
+    client_elements = [psi.hash_to_int(kwd) for kwd in client_keywords]
+    return client_elements
+
+def server_setup_SMALL_DATASET():
+    return psi.server_setup()
+
+def client_setup_SMALL_DATASET():
     # Enter test keywords
     client_keywords = ['apple', 'banana']
 
     client_elements = [psi.hash_to_int(kwd) for kwd in client_keywords]
     return client_elements
 
-# Override the client_setup function in psi.py
-psi.client_setup = client_setup_override
 
 # Begin total timing
 total_start_time = time.time()
 
-server_elements = psi.server_setup()
-client_elements = psi.client_setup()
+# Here enter SMALL or LARGE to test either scenario
+server_elements = server_setup_LARGE_DATASET()
+client_elements = client_setup_LARGE_DATASET()
 
 # Measure the time taken by client_transform()
 start_time = time.time()
