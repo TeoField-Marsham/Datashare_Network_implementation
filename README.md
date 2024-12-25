@@ -10,7 +10,7 @@ PSI allows a client and server to compute the intersection of their respective k
 
 ### 1. Setup and Key Generation
 
-- A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919).  
+- A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919)).  
 - Each keyword is hashed (using BLAKE2b) to an integer under the group order $ \frac{P-1}{2} $ to obscure the original keywords.
 - Each party (client and server) locally generates a random secret exponent mod $ \frac{P-1}{2} $.
 
@@ -18,11 +18,11 @@ PSI allows a client and server to compute the intersection of their respective k
 
 - The client exponentiates the hashed values with its secret ($ \text{hash}^s \mod P $
 ) and sends them to the server.
-- The server exponentiates both its own hashed values and the client’s exponentiated values with its own secret.
+- The server exponentiates both its own hashed values and the clients exponentiated values with its own secret.
 
 ### 3. Intersection
 
-- After receiving the server’s further exponentiations, the client inversely exponentiates them to recover all valid collisions.
+- After receiving the servers further exponentiations, the client inversely exponentiates them to recover all valid collisions.
 - The sets of tags are compared by hashing them again with some extra identifying information (e.g., document ID + exponentiated keyword).
 - The client identifies which tags match and can conclude which keywords are in both sets and satisfy their query.
 
@@ -42,12 +42,12 @@ The scheme flows similar to PSI:
 
 - The client exponentiates the hashed values with its secret ($ \text{hash}^s \mod P $
 ) and sends them to the server.
-- The server exponentiates both its own hashed values and the client’s exponentiated values with its own secret.
+- The server exponentiates both its own hashed values and the clients exponentiated values with its own secret.
 - Additionaly to PSI, here a `Counter` is used to keep track of frequencies of elements.
 
 ### 3. Intersection
 
-- After receiving the server’s further exponentiations, the client inversely exponentiates them to recover all valid collisions.
+- After receiving the servers further exponentiations, the client inversely exponentiates them to recover all valid collisions.
 - The client checks how many times a given hashed keyword appears in the server sets (while still not revealing the exact keywords).
 - The result is a multiset intersection (you get not only which items intersect, but also how many times they match). 
 
@@ -64,7 +64,7 @@ These results clearly show that the extra functionalties of MS-PSI come at a cos
 
 Some potential optimizations that could narrow the performance gap include: parallelizing or batching the exponentiations, using a custom, specialized frequency counter or simply using a faster hashing or exponentiation library(a compiled C library instead of Python). 
 
-In summary, more extensive testing (varying the number and size of documents, the exact distribution of keywords, testing on different hardware) could paint a more exact picture of the overall performance and performance gap of the two schemes. This data could then be used to optimize both schemes and make them as lightweight and efficient as possible, which are key requirements mentioned in the paper. Nevertheless, MS-PSI will always be more expensive than PSi, however its more extensive feature set, is simply required in certain situations.
+In summary, more extensive testing (varying the number and size of documents, the exact distribution of keywords, testing on different hardware) could paint a more exact picture of the overall performance and performance gap of the two schemes. This data could then be used to optimize both schemes and make them as lightweight and efficient as possible, which are key requirements mentioned in the paper. Nevertheless, MS-PSI will always be more expensive than PSI, however its more extensive feature set, is simply required in certain situations.
 
 ## Differences to the original protocol
 
