@@ -60,6 +60,15 @@ The following test results have been obtained by running the PSI and MS-PSI algo
 | PSI    |     317.59    |    10275.98   |
 | MS-PSI |    1343.82    |    27795.98   |
 
+<small>
+
+- Small dataset for **PSI**: Server has 4 keywords in 1 document and client query contains 2 keywords
+- Large dataset for **PSI**: Server has 300 keywords in 1 document and client query contains 10 keywords
+- Small dataset for **MS-PSI**: Server has 21 keywords in 5 documents and client query contains 2 keywords
+- Large dataset for **MS-PSI**: Server has 300 keywords in 30 documents and client query contains 10 keywords
+
+</small>
+
 These results clearly show that the extra functionalties of MS-PSI come at a cost of longer runtime under identical computational conditions and dataset sizes. MS-PSI's ability to handle multiplicities and return the exact ID's of matching keywords, compared to PSI which only returns the count(ignoring multiplicities) naturally increases the runtime.
 
 Some potential optimizations that could narrow the performance gap include: parallelizing or batching the exponentiations, using a custom, specialized frequency counter or simply using a faster hashing or exponentiation library(a compiled C library instead of Python). 
