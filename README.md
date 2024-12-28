@@ -57,8 +57,13 @@ The following test results have been obtained by running the PSI and MS-PSI algo
 
 |        | Small dataset | Large dataset |   
 |--------|---------------|---------------|
-| PSI    |     317.59    |    10275.98   |
-| MS-PSI |    1343.82    |    27795.98   |
+| PSI    |     317.59[^1]    |    10275.98[^2]   |
+| MS-PSI |    1343.82[^3]    |    27795.98[^4]   |
+
+[^1]: Server has 4 keywords in 1 document and client query contains 2 keywords
+[^2]: Server has 300 keywords in 1 document and client query contains 10 keywords
+[^3]: Server has 21 keywords in 5 documents and client query contains 2 keywords
+[^4]: Server has 300 keywords in 30 documents and client query contains 10 keywords
 
 <small>
 
