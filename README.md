@@ -11,13 +11,12 @@ PSI allows a client and server to compute the intersection of their respective k
 ### 1. Setup and Key Generation
 
 - A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919)).  
-- Each keyword is hashed (using BLAKE2b) to an integer under the group order $ \frac{P-1}{2} $ to obscure the original keywords.
-- Each party (client and server) locally generates a random secret exponent mod $ \frac{P-1}{2} $.
+- Each keyword is hashed (using BLAKE2b) to an integer under the group order (P-1)/2 to obscure the original keywords.
+- Each party (client and server) locally generates a random secret exponent mod (P-1)/2.
 
 ### 2. Transformations
 
-- The client exponentiates the hashed values with its secret ($ \text{hash}^s \mod P $
-) and sends them to the server.
+- The client exponentiates the hashed values with its secret (hash^s mod P) and sends them to the server.
 - The server exponentiates both its own hashed values and the clients exponentiated values with its own secret.
 
 ### 3. Intersection
@@ -35,13 +34,12 @@ The scheme flows similar to PSI:
 ### 1. Setup and Key Generation
 
 - A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919).  
-- Each keyword is hashed (using BLAKE2b) to an integer under the group order $ \frac{P-1}{2} $ to obscure the original keywords.
-- Each party (client and server) locally generates a random secret exponent mod $ \frac{P-1}{2} $.
+- Each keyword is hashed (using BLAKE2b) to an integer under the group order (P-1)/2 to obscure the original keywords.
+- Each party (client and server) locally generates a random secret exponent mod (P-1)/2.
 
 ### 2. Transformations
 
-- The client exponentiates the hashed values with its secret ($ \text{hash}^s \mod P $
-) and sends them to the server.
+- The client exponentiates the hashed values with its secret (hash^s mod P) and sends them to the server.
 - The server exponentiates both its own hashed values and the clients exponentiated values with its own secret.
 - Additionaly to PSI, here a `Counter` is used to keep track of frequencies of elements.
 
@@ -59,11 +57,6 @@ The following test results have been obtained by running the PSI and MS-PSI algo
 |--------|---------------|---------------|
 | PSI    |     317.59[^1]    |    10275.98[^2]   |
 | MS-PSI |    1343.82[^3]    |    27795.98[^4]   |
-
-[^1]: Server has 4 keywords in 1 document and client query contains 2 keywords
-[^2]: Server has 300 keywords in 1 document and client query contains 10 keywords
-[^3]: Server has 21 keywords in 5 documents and client query contains 2 keywords
-[^4]: Server has 300 keywords in 30 documents and client query contains 10 keywords
 
 <small>
 
@@ -121,3 +114,14 @@ To run performance tests for MSPSI (small or large keyword sets or different par
     python3 benchmarking_mspsi.py
     
 Functionality of the test needs to be adjusted within the code.
+
+
+
+
+[^1]: Server has 4 keywords in 1 document and client query contains 2 keywords
+
+[^2]: Server has 300 keywords in 1 document and client query contains 10 keywords
+
+[^3]: Server has 21 keywords in 5 documents and client query contains 2 keywords
+
+[^4]: Server has 300 keywords in 30 documents and client query contains 10 keywords
