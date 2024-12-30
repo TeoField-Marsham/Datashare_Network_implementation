@@ -1,9 +1,28 @@
 # SPEED TEST FOR PSI
 
+# To switch between SMALL and LARGE dataset tests, change the `TEST_TYPE` variable below.
+TEST_TYPE = 'SMALL' # Options: 'SMALL' or 'LARGE'
+
 import time
 import psi
 import random
 import string
+
+def server_setup():
+    if TEST_TYPE == 'LARGE':
+        return server_setup_LARGE_DATASET() 
+    elif TEST_TYPE == 'SMALL':
+        return server_setup_SMALL_DATASET()
+    else:
+        raise ValueError("Invalid TEST_TYPE. Please only enter 'LARGE' or 'SMALL'.")
+
+def client_setup():
+    if TEST_TYPE == 'LARGE':
+        return client_setup_LARGE_DATASET() 
+    elif TEST_TYPE == 'SMALL':
+        return client_setup_SMALL_DATASET()
+    else:
+        raise ValueError("Invalid TEST_TYPE. Please only enter 'LARGE' or 'SMALL'.")
 
 def generate_large_keyword_pool(num_keywords):
     # Creates a pool of random 5-letter keywords
@@ -52,8 +71,8 @@ def client_setup_SMALL_DATASET():
 total_start_time = time.time()
 
 # Here enter SMALL or LARGE to test either scenario
-server_elements = server_setup_LARGE_DATASET()
-client_elements = client_setup_LARGE_DATASET()
+server_elements = server_setup()
+client_elements = client_setup()
 
 # Measure the time taken by client_transform()
 start_time = time.time()

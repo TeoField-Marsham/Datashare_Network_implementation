@@ -6,11 +6,7 @@ This repository implements Private Set Intersection (PSI) and Multi-Set Private 
 
 ## Private Set Intersection (PSI)
 
-PSI allows a client and server to compute the intersection of their respective keyword sets (so 2 sets in total) without revealing any details of their sets. At a high level, the scheme is as follows:
-
-### Diagram
-
-<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_diagram.png?raw=true" alt="alt text" width="500">
+PSI allows a client and server to compute the intersection of their respective keyword sets (2 sets in total) without revealing any details of their sets. At a high level, the scheme is as follows:
 
 ### 1. Setup and Key Generation
 
@@ -29,15 +25,15 @@ PSI allows a client and server to compute the intersection of their respective k
 - The sets of tags are compared by hashing them again with some extra identifying information (e.g., document ID + exponentiated keyword).
 - The client identifies which tags match and can conclude which keywords are in both sets and satisfy their query.
 
+### PSI Diagram
+
+<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_diagram.png?raw=true" alt="alt text" width="500">
+
 ## Multi-Set Private Set Intersection (MS-PSI)
 
 MS-PSI extends PSI by allowing multiset intersection (we have one server keyword set, but can have mutliple client keyword sets). In MS-PSI, each keyword can appear multiple times, and the intersection must respect these multiplicities (e.g. if the client has “apple” twice in their query, if the server has "apple" twice in their set, this will count as 2 matches).
 
 The scheme flows similar to PSI:
-
-### Diagram
-
-<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_diagram.png?raw=true" alt="alt text" width="500">
 
 ### 1. Setup and Key Generation
 
@@ -56,6 +52,10 @@ The scheme flows similar to PSI:
 - After receiving the servers tag collection, the client inversely exponentiates them to recover all valid collisions.
 - The client checks how many times a given hashed keyword appears in the server sets (while still not revealing the exact keywords).
 - The result is a multiset intersection (you get not only which items intersect, but also how many times they match). 
+
+### MS-PSI Diagram
+
+<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_diagram.png?raw=true" alt="alt text" width="500">
 
 ## Results
 
@@ -85,6 +85,7 @@ Lastly, in MS-PSI in the server_transform() function, in my code only the tag co
 - **Python Version:** Ensure you have Python 3.8 or higher installed.
 - **Dependencies:** Scripts use only built-in Python libraries, so no extra installations are necessary.
 - **Installation:** Simply clone the [repository](https://github.com/TeoField-Marsham/Datashare_Network_implementation) and you are good to go! 
+- Additional information can be found in the comments throughout the code
 
 ### PSI
 To run the basic PSI example and interactively input your search keywords:
