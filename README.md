@@ -2,15 +2,19 @@
 
 By: Teo Field-Marsham
 
-This repository implements Private Set Intersection (PSI) and Multi-Set Private Set Intersection (MS-PSI) as described in the original paper *DatashareNetwork: A Decentralized Privacy-Preserving Search Engine for Investigative Journalists* by Kasra EdalatNejad (SPRING Lab, EPFL) et al from USENIX 2020.
+This repository implements Private Set Intersection (PSI) and Multi-Set Private Set Intersection (MS-PSI) as described in the original paper [*DatashareNetwork: A Decentralized Privacy-Preserving Search Engine for Investigative Journalists* by Kasra EdalatNejad (SPRING Lab, EPFL) et al from USENIX 2020](https://arxiv.org/pdf/2005.14645). 
 
 ## Private Set Intersection (PSI)
 
 PSI allows a client and server to compute the intersection of their respective keyword sets (so 2 sets in total) without revealing any details of their sets. At a high level, the scheme is as follows:
 
+### Diagram
+
+![alt text](https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_diagram.png?raw=true)
+
 ### 1. Setup and Key Generation
 
-- A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919)).  
+- A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919)). The group order is q=(P-1)/2 and P and q are safe primes.  
 - Each keyword is hashed (using BLAKE2b) to an integer under the group order (P-1)/2 to obscure the original keywords.
 - Each party (client and server) locally generates a random secret exponent mod (P-1)/2.
 
@@ -21,7 +25,7 @@ PSI allows a client and server to compute the intersection of their respective k
 
 ### 3. Intersection
 
-- After receiving the servers further exponentiations, the client inversely exponentiates them to recover all valid collisions.
+- After receiving the servers tag collection, the client inversely exponentiates them to recover all valid collisions.
 - The sets of tags are compared by hashing them again with some extra identifying information (e.g., document ID + exponentiated keyword).
 - The client identifies which tags match and can conclude which keywords are in both sets and satisfy their query.
 
@@ -31,9 +35,13 @@ MS-PSI extends PSI by allowing multiset intersection (we have one server keyword
 
 The scheme flows similar to PSI:
 
+### Diagram
+
+![alt text](https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_diagram.png?raw=true)
+
 ### 1. Setup and Key Generation
 
-- A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919).  
+- A large prime P and generator G are chosen (in this case, a 2048-bit prime from [RFC 7919](https://datatracker.ietf.org/doc/html/rfc7919)). The group order is q=(P-1)/2 and P and q are safe primes. 
 - Each keyword is hashed (using BLAKE2b) to an integer under the group order (P-1)/2 to obscure the original keywords.
 - Each party (client and server) locally generates a random secret exponent mod (P-1)/2.
 
@@ -45,7 +53,7 @@ The scheme flows similar to PSI:
 
 ### 3. Intersection
 
-- After receiving the servers further exponentiations, the client inversely exponentiates them to recover all valid collisions.
+- After receiving the servers tag collection, the client inversely exponentiates them to recover all valid collisions.
 - The client checks how many times a given hashed keyword appears in the server sets (while still not revealing the exact keywords).
 - The result is a multiset intersection (you get not only which items intersect, but also how many times they match). 
 
@@ -57,15 +65,6 @@ The following test results have been obtained by running the PSI and MS-PSI algo
 |--------|---------------|---------------|
 | PSI    |     317.59[^1]    |    10275.98[^2]   |
 | MS-PSI |    1343.82[^3]    |    27795.98[^4]   |
-
-<small>
-
-- Small dataset for **PSI**: Server has 4 keywords in 1 document and client query contains 2 keywords
-- Large dataset for **PSI**: Server has 300 keywords in 1 document and client query contains 10 keywords
-- Small dataset for **MS-PSI**: Server has 21 keywords in 5 documents and client query contains 2 keywords
-- Large dataset for **MS-PSI**: Server has 300 keywords in 30 documents and client query contains 10 keywords
-
-</small>
 
 These results clearly show that the extra functionalties of MS-PSI come at a cost of longer runtime under identical computational conditions and dataset sizes. MS-PSI's ability to handle multiplicities and return the exact ID's of matching keywords, compared to PSI which only returns the count(ignoring multiplicities) naturally increases the runtime.
 
