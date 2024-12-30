@@ -10,7 +10,7 @@ PSI allows a client and server to compute the intersection of their respective k
 
 ### Diagram
 
-![alt text](https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_diagram.png?raw=true)
+<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_diagram.png?raw=true" alt="alt text" width="500">
 
 ### 1. Setup and Key Generation
 
@@ -37,7 +37,7 @@ The scheme flows similar to PSI:
 
 ### Diagram
 
-![alt text](https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_diagram.png?raw=true)
+<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_diagram.png?raw=true" alt="alt text" width="500">
 
 ### 1. Setup and Key Generation
 
