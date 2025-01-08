@@ -27,7 +27,7 @@ PSI allows a client and server to compute the intersection of their respective k
 
 ### PSI Diagram
 
-<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_diagram.png?raw=true" alt="alt text" width="500">
+<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/PSI_with_labels.png?raw=true" alt="alt text" width="500">
 
 ## Multi-Set Private Set Intersection (MS-PSI)
 
@@ -55,7 +55,7 @@ The scheme flows similar to PSI:
 
 ### MS-PSI Diagram
 
-<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_diagram.png?raw=true" alt="alt text" width="500">
+<img src="https://github.com/TeoField-Marsham/Datashare_Network_implementation/blob/main/MSPSI_with_labels.png?raw=true" alt="alt text" width="500"> 
 
 ## Results
 
