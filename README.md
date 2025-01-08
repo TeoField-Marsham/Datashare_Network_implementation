@@ -51,7 +51,7 @@ The scheme flows similar to PSI:
 
 - After receiving the servers tag collection, the client inversely exponentiates them to recover all valid collisions.
 - The client checks how many times a given hashed keyword appears in the server sets (while still not revealing the exact keywords).
-- The result is a multiset intersection (you get not only which items intersect, but also how many times they match). 
+- The result is a multiset intersection (you receive not only which items intersect, but also how many times they match). 
 
 ### MS-PSI Diagram
 
@@ -66,9 +66,9 @@ The following test results have been obtained by running the PSI and MS-PSI algo
 | PSI    |     317.59[^1]    |    10275.98[^2]   |
 | MS-PSI |    1343.82[^3]    |    27795.98[^4]   |
 
-These results clearly show that the extra functionalties of MS-PSI come at a cost of longer runtime under identical computational conditions and dataset sizes. MS-PSI's ability to handle multiplicities and return the exact ID's of matching keywords, compared to PSI which only returns the count(ignoring multiplicities) naturally increases the runtime.
+These results clearly show that the extra functionalties of MS-PSI come at a cost of longer runtime under identical computational conditions and dataset sizes. MS-PSI's ability to handle multiplicities and return the exact ID's of matching keywords, compared to PSI which only returns the count (ignoring multiplicities) naturally increases the runtime.
 
-Some potential optimizations that could narrow the performance gap include: parallelizing or batching the exponentiations, using a custom, specialized frequency counter or simply using a faster hashing or exponentiation library(a compiled C library instead of Python). 
+Some potential optimizations that could narrow the performance gap include: parallelizing or batching the exponentiations, using a custom, specialized frequency counter or simply using a faster hashing or exponentiation library (a compiled C library instead of Python). 
 
 In summary, more extensive testing (varying the number and size of documents, the exact distribution of keywords, testing on different hardware) could paint a more exact picture of the overall performance and performance gap of the two schemes. This data could then be used to optimize both schemes and make them as lightweight and efficient as possible, which are key requirements mentioned in the paper. Nevertheless, MS-PSI will always be more expensive than PSI, however its more extensive feature set, is simply required in certain situations.
 
@@ -76,7 +76,7 @@ In summary, more extensive testing (varying the number and size of documents, th
 
 Firstly, in the example code by the authors of the original paper, values are chosen according to elliptic curve groups, whereas I create them according to prime-order groups with modular exponentiation for the discrete log (DLOG) problem. This was however according to the specifications of my assignment.
 
-Another change I chose to make is to take the inital hashing step, where the keyword sets of both client and server are hashed, and do them in the very step. I did this because the paper describes a real-world scenario involving a central server that is constanlty receiving new keyword sets from journailists. I however, wanted to create a demo that can easily be run by any single user on a single device, but still keep this critical security feature. 
+Another change I chose to make is to take the inital hashing step, where the keyword sets of both client and server are hashed, and do them in the very first step. I did this because the paper describes a real-world scenario involving a central server that is constanlty receiving new keyword sets from journalists. I however, wanted to create a demo that can easily be run by any single user on a single device, but still keep this critical security feature. 
 
 Lastly, in MS-PSI in the server_transform() function, in my code only the tag collection is returned and not N (N is the number of keyword sets the server holds). N is specified in the original protocol because it may be useful for performance optimizations or bounding loops in a theoretical implementation. Some implementations might also rely on N to preallocate memory or track progress, however in my Python implementation N is stored implicitly due to the nature of Python dictionaries and does not need to be returned explicitly. 
 
